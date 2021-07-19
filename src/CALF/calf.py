@@ -773,6 +773,197 @@ def calf_cv(data, targetVector, limit, times, proportion = .8, optimize = 'pval'
 
 
 
+def perm_target_cv(data, targetVector, limit, times, proportion = .8, optimize = 'pval', outputPath=None):
+
+	if targetVector != 'binary' and targetVector != 'nonbinary':
+		raise Exception('CALF ERROR: Invalid targetVector argument.  Only "binary" or "nonbinary" is allowed.')
+	elif targetVector == 'binary' and optimize=='corr':
+		raise Exception('CALF ERROR: Optimizing by "corr" is only applicable to nonbinary data.')
+	elif targetVector == 'nonbinary' and optimize=='pval':
+		raise Exception('CALF ERROR: Optimizing by "pval" is only applicable to binary data.')
+	elif targetVector == 'nonbinary' and optimize=='auc':
+		raise Exception('CALF ERROR: Optimizing by "auc" is only applicable to binary data.')
+	else:
+
+		#Get the rows of interest first, as there is no reason to repeat this
+		if targetVector == 'binary':
+
+			ctrlRows = data.loc[data.iloc[:,0] == 0]
+			caseRows = data.loc[data.iloc[:,0] == 1]
+
+			# calculate number of case and control to keep
+			nCtrlKeep = round(len(ctrlRows.index) * proportion)
+			nCaseKeep = round(len(caseRows.index) * proportion)
+			
+		elif targetVector == 'nonbinary':
+			nDataKeep = round(len(data)*proportion)
+
+
+		header = None
+		#Build the header row for the table that will be output
+		columNames = data.columns.tolist()[1:]
+		if targetVector == "binary":
+			if optimize == 'pval':
+				header = ["Number Selected", "AUC", "pval"] + columNames
+			elif optimize == 'auc':
+				header = ["Number Selected", "AUC"] + columNames
+		elif targetVector == 'nonbinary':
+			header = ["Number Selected", "corr"] + columNames
+
+
+		results = pandas.DataFrame(0, index=range(0,times), dtype=object, columns=header)
+
+
+		#Now run the CALF calculation "times" times
+		rowCount = 0
+		optimizedKeptList = list()
+		optimizedUnkeptList = list()
+		correlationList = list()
+		
+		while rowCount < times:
+		
+			print("Iteration: " + str(rowCount))
+
+			if targetVector == 'binary':
+
+				#Resample the binary data, keeping track of what was included and what was not.
+				shuffledCtrl = ctrlRows
+				shuffledCtrl.iloc[:,0] = shuffledCtrl.iloc[:,0].sample(frac=1).values
+				keepCtrlRows = shuffledCtrl.loc[0:nCtrlKeep-1]
+				unkeptCtrlRows = shuffledData.loc[nCtrlKeep:]
+
+				shuffledCase = caseRows
+				shuffledCase.iloc[:,0] = shuffledCase.iloc[:,0].sample(frac=1).values
+				keepCaseRows = shuffledCase.loc[0:nCaseKeep-1]
+				unkeptCaseRows = shuffledData.loc[nCaseKeep:]
+
+				keepData = pandas.concat([keepCtrlRows, keepCaseRows])
+				unkeptData = pandas.concat([unkeptCtrlRows, unkeptCaseRows])
+
+				if outputPath is not None:
+					outputFile = outputPath + 'binaryKept.csv'
+					keepData.to_csv(outputFile, index=False)
+
+					outputFile = outputPath + 'binaryExcluded.csv'
+					unkeptData.to_csv(outputFile, index=False)
+
+			elif targetVector == 'nonbinary':
+
+				#Resample the nonbinary data
+				shuffledData = data
+				shuffledData.iloc[:,0] = shuffledData.iloc[:,0].sample(frac=1).values
+				keepData = shuffledData.loc[0:nDataKeep-1]
+				unkeptData = shuffledData.loc[nDataKeep:]
+
+				if outputPath is not None:
+					outputFile = outputPath + 'nonbinaryKept.csv'
+					keepData.to_csv(outputFile, index=False)
+
+					outputFile = outputPath + 'nonbinaryExcluded.csv'
+					unkeptData.to_csv(outputFile, index=False)
+
+
+			answer = calf_internal(data=keepData,
+				nMarkers = limit,
+				randomize  = False,
+				proportion = None,
+				times = 1,
+				targetVector = targetVector,
+				optimize = optimize,
+				verbose = False)
+
+
+			#Keep track of the optimizer values returned for each run
+			if optimize == 'auc':
+				results.at[rowCount,'AUC'] = answer['auc']
+				optimizedKeptList.append(answer['auc'])
+			elif optimize == 'pval':
+				results.at[rowCount, "AUC"] = answer['auc']
+				results.at[rowCount,"pval"] = answer['finalBest']
+				
+				optimizedKeptList.append(answer['finalBest'])
+			elif optimize == 'corr':
+				print("Writing to " + str(rowCount) + " corr of " + str(answer['finalBest']))
+				results.at[rowCount,'corr'] = answer['finalBest']
+				optimizedKeptList.append(answer['finalBest'])
+			
+			#Keep a tally of the results per calf run
+			markerList = answer['selection']['Marker']
+			lenMarkerList = len(markerList)
+			results.at[rowCount, "Number Selected"] = lenMarkerList
+
+			markerCount = 0
+			while markerCount < lenMarkerList:
+				results.at[rowCount, markerList[markerCount]] = answer['selection']['Weight'][markerCount]
+				markerCount += 1
+
+			#Perform the cross-validation
+			if targetVector == 'binary':
+				if optimize == 'pval':
+					unkeptDropped = unkeptData.drop(unkeptData.columns[0], axis=1)
+					resultsDropped = results.drop(results.columns[0:3], axis=1)
+
+					weightsTimesUnkept = unkeptDropped.dot(resultsDropped.iloc[rowCount,:])
+					
+					resultCtrlData = weightsTimesUnkept[unkeptCtrlRows.index]
+					resultCaseData = weightsTimesUnkept[unkeptCaseRows.index]
+					
+					optimizedUnkeptList.append(ttest_ind(resultCaseData, resultCtrlData, equal_var=False).pvalue)
+
+				elif optimize == 'auc':
+					unkeptDropped = unkeptData.drop(unkeptData.columns[0], axis=1)
+					resultsDropped = results.drop(results.columns[0:2], axis=1)
+
+					weightsTimesUnkept = unkeptDropped.dot(resultsDropped.iloc[rowCount,:])
+					
+					resultCtrlData = weightsTimesUnkept[unkeptCtrlRows.index]
+					resultCaseData = weightsTimesUnkept[unkeptCaseRows.index]
+
+					optimizedUnkeptList.append(computeAuc(resultCaseData, resultCtrlData))
+
+			elif targetVector == 'nonbinary':
+
+				unkeptDropped = unkeptData.drop(unkeptData.columns[0], axis=1)
+				resultsDropped = results.drop(results.columns[0:2], axis=1)
+				weightsTimesUnkept = unkeptDropped.dot(resultsDropped.iloc[rowCount,:])
+							
+				corrResult = pandas.Series(weightsTimesUnkept, dtype=float).corr(pandas.Series(unkeptData.iloc[:,0]))
+
+				correlationList.append(corrResult)
+			
+			
+			#If an outputPath was provided, then output the extra data generated by the CV
+			if outputPath is not None:
+				#Write the results
+				if targetVector == 'binary':
+					outputFile = outputPath + 'binary.csv'
+					results.to_csv(outputFile, index=False)
+
+					outputFile = outputPath + optimize + 'KeptList.txt'
+					optimizedKept = open(outputFile, "w")
+					optimizedKept.write(str(optimizedKeptList))
+					optimizedKept.close()
+
+					outputFile = outputPath + 'AUCExcludedList.txt'
+					optimizedUnkept = open(outputFile, "w")
+					optimizedUnkept.write(str(optimizedUnkeptList))
+					optimizedUnkept.close()
+
+				elif targetVector == 'nonbinary':
+					outputFile = outputPath + 'nonbinary.csv'
+					results.to_csv(outputFile, index=False)
+
+					outputFile = outputPath + 'corrExcludedList.txt'
+					correlationExcluded = open(outputFile, "w")
+					correlationExcluded.write(str(correlationList))
+					correlationExcluded.close()
+
+			rowCount += 1
+			
+		return(results)
+
+
+
 
 #'@title write_calf
 #'@description Writes data returned from a call to calf()
