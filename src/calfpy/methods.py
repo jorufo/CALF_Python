@@ -26,19 +26,29 @@ def computeAuc(caseVar, ctrlVar):
 
 
 def calf(data, nMarkers, targetVector, optimize = 'pval', verbose = False):
-#'@title calf
-#'@description Coarse Approximation Linear Function
-#'@param data Matrix or data frame. First column must contain case/control dummy coded variable (if targetVector = "binary"). Otherwise, first column must contain real number vector corresponding to selection variable (if targetVector = "nonbinary"). All other columns contain relevant markers.
-#'@param nMarkers Maximum number of markers to include in creation of sum.
-#'@param targetVector Indicate "binary" for target vector with two options (e.g., case/control). Indicate "nonbinary" for target vector with real numbers.
-#'@param optimize Criteria to optimize, "pval" or "auc", (if targetVector = "binary") or "corr" (if targetVector = "nonbinary").  Defaults to "pval".
-#'@param verbose Logical. Indicate True to print activity at each iteration to console. Defaults to False.
-#'@return A data frame containing the chosen markers and their assigned weight (-1 or 1)
-#'@return The optimal AUC, pval, or correlation for the classification.
-#'@return If targetVector is binary, rocPlot. A plot object from ggplot2 for the receiver operating curve.
-#'@examples
-#'calf(data = CaseControl, nMarkers = 6, targetVector = "binary", optimize = "pval")
-#'@export
+	'''Coarse Approximation Linear function.  The main function used to invoke the CALF algorithm on a dataset.
+
+	:param data: Data frame where first column contains case/control coded variable (0/1) if targetVector is binary or real values if targetVector is nonbinary
+	:type data: pandas DataFrame
+	:param nMarkers: Maximum number of markers to include in creation of sum.
+	:type nMarkers: int
+	:param targetVector: Set to "binary" to indicate data with a target vector (first column) having case/control characteristic.  Set to "nonbinary" for target vector (first column) with real numbers.
+	:type targetVector: string
+	:param optimize: Criteria to optimize.  Allowed values are "pval", "auc", for a binary target vector, or "corr" for a nonbinary target vector.
+	:type optimize: string
+	:param verbose: True to print activity at each iteration to console. Defaults to False.
+	:type verbose: bool
+	:return: A dictionary composed of the following results from CALF:
+			'selection': The markers selected each with their assigned weight (-1 or 1),
+			'auc': The AUC determined during running CALF.  AUC can be provided for given markers AUC represented for selected markers will only be optimal if set to optimzie for AUC,
+			'randomize': False,
+			'proportion': Undefined,
+			'targetVec': Target vector argument given in the function call,
+			'rocPlot': Receiver operating curve plot, if applicable for dataset type and optimizer supplied, 
+			'finalBest': The optimal value for the provided optimization type, e.g. if optimize='pval" this will have the calculated p-value for the run,
+			'optimize': The optimizer argument given in the function call,
+	:rtype: dict
+	'''
 
 	if targetVector != 'binary' and targetVector != 'nonbinary':
 		raise Exception('CALF ERROR: Invalid targetVector argument.  Only "binary" or "nonbinary" is allowed.')
@@ -73,20 +83,31 @@ def calf(data, nMarkers, targetVector, optimize = 'pval', verbose = False):
 	
 
 def calf_fractional(data, nMarkers, controlProportion = .8, caseProportion = .8, optimize = "pval", verbose = False):
-#'@title calf_fractional
-#'@description Randomly selects from binary input provided to data parameter while ensuring the requested proportions of case and control variables are used and runs Coarse Approximation Linear Function.
-#'@param data Matrix or data frame. Must be binary data such that the first column must contain case/control dummy coded variable, as function is only approprite for binary data.
-#'@param nMarkers Maximum number of markers to include in creation of sum.
-#'@param controlProportion Proportion of control samples to use, default is .8.
-#'@param caseProportion Proportion of case samples to use, default is .8.
-#'@param optimize Criteria to optimize, "pval" or "auc".  Defaults to "pval".
-#'@param verbose Logical. Indicate True to print activity at each iteration to console. Defaults to False.
-#'@return A data frame containing the chosen markers and their assigned weight (-1 or 1)
-#'@return The optimal AUC or pval for the classification.
-#'@return rocPlot. A plot object from ggplot2 for the receiver operating curve.
-#'@examples
-#'calf_fractional(data = CaseControl, nMarkers = 6, controlProportion = .8, caseProportion = .4)
-#'@export
+	'''Randomly selects from binary input provided to data parameter while ensuring the requested proportions of case and control variables are used and runs Coarse Approximation Linear Function.
+
+	:param data: Data frame where first column contains case/control coded variables (0/1) (binary data).
+	:type data: pandas DataFrame
+	:param nMarkers: Maximum number of markers to include in creation of sum.
+	:type nMarkers: int
+	:param controlProportion: Proportion of control samples to use, default is .8.
+	:type controlProportion: float
+	:param caseProportion: Proportion of case samples to use, default is .8.
+	:type caseProportion: float
+	:param optimize: Criteria to optimize.  Allowed values are "pval" or "auc"
+	:type optimize: string
+	:param verbose: True to print activity at each iteration to console. Defaults to False.
+	:type verbose: bool
+	:return: A dictionary composed of the following results from CALF:
+			'selection': The markers selected each with their assigned weight (-1 or 1),
+			'auc': The AUC determined during running CALF.  AUC can be provided for given markers AUC represented for selected markers will only be optimal if set to optimzie for AUC,
+			'randomize': False,
+			'proportion': The proportions of case an control applied druing the function run,
+			'targetVec': "binary"
+			'rocPlot': Receiver operating curve plot, if applicable for dataset type and optimizer supplied, 
+			'finalBest': The optimal value for the provided optimization type, e.g. if optimize='pval" this will have the calculated p-value for the run,
+			'optimize': The optimizer argument given in the function call,
+	:rtype: dict
+	'''
 
 	if optimize != 'pval' and optimize != 'auc':
 		raise Exception('CALF ERROR: calf_fractional is only applicable to binary datasets.  Options for parameter "optimize" are "pval" or "auc".')
@@ -121,27 +142,39 @@ def calf_fractional(data, nMarkers, controlProportion = .8, caseProportion = .8,
 	print('\n')
 
 
-#'@title calf_randomize
-#'@description Randomly selects from binary input provided to data parameter and runs Coarse Approximation Linear Function.
-#'@param data Matrix or data frame. Must be binary data such that the first column must contain case/control dummy coded variable, as function is only approprite for binary data.
-#'@param nMarkers Maximum number of markers to include in creation of sum.
-#'@param targetVector Indicate "binary" for target vector with two options (e.g., case/control). Indicate "nonbinary" for target vector with real numbers.
-#'@param times Numeric. Indicates the number of replications to run with randomization.
-#'@param optimize Criteria to optimize if targetVector = "binary." Indicate "pval" to optimize the p-value corresponding to the t-test distinguishing case and control. Indicate "auc" to optimize the AUC.
-#'@param verbose Logical. Indicate True to print activity at each iteration to console. Defaults to False.
-#'@return A data frame containing the chosen markers and their assigned weight (-1 or 1)
-#'@return The optimal AUC, pval, or correlation for the classification.
-#'@return aucHist A histogram of the AUCs across replications, if applicable.
-#'@examples
-#'calf_randomize(data = CaseControl, nMarkers = 6, targetVector = "binary", times = 5)
-#'@export
+
 def calf_randomize(data,
 	nMarkers,
 	targetVector,
 	times = 1,
 	optimize = "pval",
 	verbose = False):
-	
+	'''Randomly selects from input provided to data parameter and runs Coarse Approximation Linear Function.
+
+	:param data: Data frame where first column contains case/control coded variable (0/1) if targetVector is binary or real values if targetVector is nonbinary
+	:type data: pandas DataFrame
+	:param nMarkers: Maximum number of markers to include in creation of sum.
+	:type nMarkers: int
+	:param times: Indicates the number of replications to run with randomization.
+	:type times: int
+	:param optimize: Criteria to optimize.  Allowed values are "pval", "auc", for a binary target vector, or "corr" for a nonbinary target vector.
+	:type optimize: string
+	:param verbose: True to print activity at each iteration to console. Defaults to False.
+	:type verbose: bool
+	:return: A dictionary composed of the following results from CALF:
+			'multiple': The markers chosen and the number of times they were selected per iteration,
+			'auc': The AUC determined during running CALF.  AUC can be provided for given markers AUC represented for selected markers will only be optimal if set to optimzie for AUC,
+			'randomize': True,
+			'targetVec': "binary"
+			'aucHist': A historgram of the AUC values calcuted for all the iterations,
+			'times': The value provided to the times parameter when the function was called,
+			'rocPlot': Receiver operating curve plot, if applicable for dataset type and optimizer supplied, 
+			'finalBest': The optimal value for the provided optimization type, e.g. if optimize='pval" this will have the calculated p-value for the run,
+			'optimize': The optimizer argument given in the function call,
+			'verbose': The value supplied to the verbose parameter when the function was called
+	:rtype: dict
+	'''
+
 	
 	if targetVector != 'binary' and targetVector != 'nonbinary':
 		raise Exception('CALF ERROR: Invalid targetVector argument.  Only "binary" or "nonbinary" is allowed.')
@@ -273,29 +306,39 @@ def calf_randomize(data,
 		'optimize': optimize,
 		'verbose': verbose
 	}
-	
 
 
 
-
-#'@title calf_subset
-#'@description Runs Coarse Approximation Linear Function on a random subset of the data provided, resulting in the same proportion applied to case and control, when applicable.
-#'@param data Matrix or data frame. First column must contain case/control dummy coded variable (if targetVector = "binary"). Otherwise, first column must contain real number vector corresponding to selection variable (if targetVector = "nonbinary"). All other columns contain relevant markers.
-#'@param nMarkers Maximum number of markers to include in creation of sum.
-#'@param proportion Numeric. A value between 0 and 1 indicating the proportion of cases and controls to use in analysis (if targetVector = "binary"). If targetVector = "nonbinary", this is just a proportion of the full sample. Used to evaluate robustness of solution. Defaults to 0.8.
-#'@param targetVector Indicate "binary" for target vector with two options (e.g., case/control). Indicate "nonbinary" for target vector with real numbers.
-#'@param times Numeric. Indicates the number of replications to run with randomization.
-#'@param optimize Criteria to optimize if targetVector = "binary." Indicate "pval" to optimize the p-value corresponding to the t-test distinguishing case and control. Indicate "auc" to optimize the AUC.
-#'@param verbose Logical. Indicate True to print activity at each iteration to console. Defaults to False.
-#'@return A data frame containing the chosen markers and their assigned weight (-1 or 1)
-#'@return The optimal AUC, pval, or correlation for the classification. If multiple replications are requested, a data.frame containing all optimized values across all replications is returned.
-#'@return aucHist A histogram of the AUCs across replications, if applicable.
-#'@examples
-#'calf_subset(data = CaseControl, nMarkers = 6, targetVector = "binary", times = 5)
-#'@export
 
 def calf_subset (data, nMarkers, targetVector, proportion = .8, times = 1, optimize = "pval", verbose = False):
+	'''Randomly selects a subset of the data on which to run Coarse Approximation Linear Function.
 
+	:param data: Data frame where first column contains case/control coded variable (0/1) if targetVector is binary or real values if targetVector is nonbinary
+	:type data: pandas DataFrame
+	:param nMarkers: Maximum number of markers to include in creation of sum.
+	:type nMarkers: int
+	:param targetVector: Set to "binary" to indicate data with a target vector (first column) having case/control characteristic.  Set to "nonbinary" for target vector (first column) with real numbers.
+	:type targetVector: string
+	:param proportion: A value between 0 and 1, the percentage of data, randomly chosen, to use in the calculation.  Default is .8,
+	:type proportion: float
+	:param times: Indicates the number of replications to run with randomization.
+	:type times: int
+	:param optimize: Criteria to optimize.  Allowed values are "pval", "auc", for a binary target vector, or "corr" for a nonbinary target vector.
+	:type optimize: string
+	:param verbose: True to print activity at each iteration to console. Defaults to False.
+	:type verbose: bool
+	:return: A dictionary composed of the following results from CALF:
+			'multiple': The markers chosen and the number of times they were selected per iteration,
+			'auc': The AUC determined during running CALF.  AUC can be provided for given markers AUC represented for selected markers will only be optimal if set to optimzie for AUC,
+			'proportion': The value supplied to the proportion paremeter when calling the function,
+			'targetVec': "binary"
+			'aucHist': A historgram of the AUC values calcuted for all the iterations,
+			'times': The value provided to the times parameter when the function was called,
+			'rocPlot': Receiver operating curve plot, if applicable for dataset type and optimizer supplied, 
+			'finalBest': The optimal value for the provided optimization type, e.g. if optimize='pval" this will have the calculated p-value for the run,
+			'optimize': The optimizer argument given in the function call,
+	:rtype: dict
+	'''
 	if targetVector != 'binary' and targetVector != 'nonbinary':
 		raise Exception('CALF ERROR: Invalid targetVector argument.  Only "binary" or "nonbinary" is allowed.')
 	elif targetVector == 'binary' and optimize=='corr':
@@ -414,23 +457,35 @@ def calf_subset (data, nMarkers, targetVector, proportion = .8, times = 1, optim
 
 
 
-#'@title calf_exact_binary_subset
-#'@description Runs Coarse Approximation Linear Function on a random subset of binary data provided, with the ability to precisely control the number of case and control data used.
-#'@param data Matrix or data frame. First column must contain case/control dummy coded variable.
-#'@param nMarkers Maximum number of markers to include in creation of sum.
-#'@param nCase Numeric. A value indicating the number of case data to use.
-#'@param nControl Numeric. A value indicating the number of control data to use.
-#'@param times Numeric. Indicates the number of replications to run with randomization.
-#'@param optimize Criteria to optimize.  Indicate "pval" to optimize the p-value corresponding to the t-test distinguishing case and control. Indicate "auc" to optimize the AUC.
-#'@param verbose Logical. Indicate TRUE to print activity at each iteration to console. Defaults to FALSE.
-#'@return A data frame containing the chosen markers and their assigned weight (-1 or 1)
-#'@return The optimal AUC or pval for the classification. If multiple replications are requested, a data.frame containing all optimized values across all replications is returned.
-#'@return aucHist A histogram of the AUCs across replications, if applicable.
-#'@examples
-#'calf_exact_binary_subset(data = CaseControl, nMarkers = 6, nCase = 5, nControl = 8, times = 5)
-#'@export
 def calf_exact_binary_subset(data, nMarkers, nCase, nControl, times = 1, optimize = "pval", verbose = False):
+	'''Randomly selects subsets of data, case and control, from a binary data set, while precisely ensuring the size of the sets on which to run Coarse Approximation Linear Function.
 
+	:param data: Data frame where first column contains case/control coded variable (0/1).
+	:type data: pandas DataFrame
+	:param nMarkers: Maximum number of markers to include in creation of sum.
+	:type nMarkers: int
+	:param nCase: The number of data points to use for the set of case samples.
+	:type nCase: int
+	:param nControl: The number of data points to use for the set of control samples.
+	:type nControl: int	
+	:param times: Indicates the number of replications to run with randomization.
+	:type times: int
+	:param optimize: Criteria to optimize.  Allowed values are "pval" or "auc"
+	:type optimize: string
+	:param verbose: True to print activity at each iteration to console. Defaults to False.
+	:type verbose: bool
+	:return: A dictionary composed of the following results from CALF:
+			'multiple': The markers chosen and the number of times they were selected per iteration,
+			'auc': The AUC determined during running CALF.  AUC can be provided for given markers AUC represented for selected markers will only be optimal if set to optimzie for AUC,
+			'proportion': The value supplied to the proportion paremeter when calling the function,
+			'targetVec': "binary"
+			'aucHist': A historgram of the AUC values calcuted for all the iterations,
+			'times': The value provided to the times parameter when the function was called,
+			'rocPlot': Receiver operating curve plot, if applicable for dataset type and optimizer supplied, 
+			'finalBest': The optimal value for the provided optimization type, e.g. if optimize='pval" this will have the calculated p-value for the run,
+			'optimize': The optimizer argument given in the function call,
+	:rtype: dict
+	'''
 	auc = None
 	targetVector = "binary"
 	finalBest = list()
@@ -575,24 +630,24 @@ def calf_exact_binary_subset(data, nMarkers, nCase, nControl, times = 1, optimiz
 
 
 
+def calf_cv(data, targetVector, limit, times, proportion = .8, optimize = 'pval', outputPath = None):
+	'''Performs repeated random subsampling cross validation on data for Coarse Approximation Linear Function.
 
-#'@title cv.calf
-#'@description Performs cross-validation using CALF data input
-#'@param data Matrix or data frame. First column must contain case/control dummy coded variable (if targetVector = "binary"). Otherwise, first column must contain real number vector corresponding to selection variable (if targetVector = "nonbinary"). All other columns contain relevant markers.
-#'@param limit Maximum number of markers to include in creation of sum.
-#'@param proportion Numeric. A value between 0 and 1 indicating the proportion of cases and controls to use in analysis (if targetVector = "binary") or proportion of the full sample (if targetVector = "nonbinary"). Defaults to 0.8.
-#'@param times Numeric. Indicates the number of replications to run with randomization.
-#'@param targetVector Indicate "binary" for target vector with two options (e.g., case/control). Indicate "nonbinary" for target vector with real numbers.
-#'@param optimize Criteria to optimize if targetVector = "binary." Indicate "pval" to optimize the p-value corresponding to the t-test distinguishing case and control. Indicate "auc" to optimize the AUC.  Defaults to pval.
-#'@param outputPath The path where files are to be written as output, default is None meaning no files will be written.  When targetVector is "binary" file binary.csv will be output in the provided path, showing the reults.  When targetVector is "nonbinary" file nonbinary.csv will be output in the provided path, showing the results.  In the same path, the kept and unkept variables from the last iteration, will be output, prefixed with the targetVector type "binary" or "nonbinary" followed by Kept and Unkept and suffixed with .csv.  Two files containing the results from each run have List in the filenames and suffixed with .txt.
-#'@return A data frame containing "times" rows of CALF runs where each row represents a run of CALF on a randomized "proportion" of "data".  Colunns start with the numer selected for the run, followed by AUC or pval and then all markers from "data".  An entry in a marker column signifys a chosen marker for a particular run (a row) and their assigned coarse weight (-1, 0, or 1).
-#'@examples
-#'\dontrun{
-#'cv.calf(data = CaseControl, limit = 5, times = 100, targetVector = 'binary', optimize = 'pval')
-#'}
-#'@export
-def calf_cv(data, targetVector, limit, times, proportion = .8, optimize = 'pval', outputPath=None):
-
+	:param data: Data frame where first column contains case/control coded variable (0/1) if targetVector is binary or real values if targetVector is nonbinary
+	:type data: pandas DataFrame
+	:param limit: Maximum number of markers to attempt to determine per iteration.
+	:type nMarkers: int
+	:param times: Indicates the number of replications to run with randomization.
+	:type times: int
+	:param proportion: A value between 0 and 1, the percentage of data, randomly chosen, to use in each iteration of CALF.  Default is .8,
+	:type proportion: float
+	:param optimize: Criteria to optimize.  Allowed values are "pval", "auc", for a binary target vector, or "corr" for a nonbinary target vector.
+	:type optimize: string
+	:param outputPath: The path where files are to be written as output, default is None meaning no files will be written.  When targetVector is "binary" file binary.csv will be output in the provided path, showing the reults.  When targetVector is "nonbinary" file nonbinary.csv will be output in the provided path, showing the results.  In the same path, the kept and excluded variables from the LAST iteration, will be output, prefixed with the targetVector type "binary" or "nonbinary" followed by Kept and Excluded and suffixed with .csv.  Two files containing the results from each run have List in the filenames and suffixed with .txt.
+	:type outputPath: string
+	:return: A data frame of the results from the cross validation.  Columns of all markers from data and rows representing each iteration of a CALF run.  Cells will contain the result from CALF for a given CALF run and the markers that were chose for that run.
+	:rtype: DataFrame
+	'''
 	if targetVector != 'binary' and targetVector != 'nonbinary':
 		raise Exception('CALF ERROR: Invalid targetVector argument.  Only "binary" or "nonbinary" is allowed.')
 	elif targetVector == 'binary' and optimize=='corr':
@@ -774,7 +829,23 @@ def calf_cv(data, targetVector, limit, times, proportion = .8, optimize = 'pval'
 
 
 def perm_target_cv(data, targetVector, limit, times, proportion = .8, optimize = 'pval', outputPath=None):
+	'''Performs repeated random subsampling cross validation on data but randomly permutes the target column (first column) with each iteration, for Coarse Approximation Linear Function.
 
+	:param data: Data frame where first column contains case/control coded variable (0/1) if targetVector is binary or real values if targetVector is nonbinary
+	:type data: pandas DataFrame
+	:param limit: Maximum number of markers to attempt to determine per iteration.
+	:type nMarkers: int
+	:param times: Indicates the number of replications to run with randomization.
+	:type times: int
+	:param proportion: A value between 0 and 1, the percentage of data, randomly chosen, to use in each iteration of CALF.  Default is .8,
+	:type proportion: float
+	:param optimize: Criteria to optimize.  Allowed values are "pval", "auc", for a binary target vector, or "corr" for a nonbinary target vector.
+	:type optimize: string
+	:param outputPath: The path where files are to be written as output, default is None meaning no files will be written.  When targetVector is "binary" file binary.csv will be output in the provided path, showing the reults.  When targetVector is "nonbinary" file nonbinary.csv will be output in the provided path, showing the results.  In the same path, the kept and excluded variables from the LAST iteration, will be output, prefixed with the targetVector type "binary" or "nonbinary" followed by Kept and Excluded and suffixed with .csv.  Two files containing the results from each run have List in the filenames and suffixed with .txt.
+	:type outputPath: string
+	:return: A data frame of the results from the cross validation.  Columns of all markers from data and rows representing each iteration of a CALF run.  Cells will contain the result from CALF for a given CALF run and the markers that were chose for that run.
+	:rtype: DataFrame
+	'''
 	if targetVector != 'binary' and targetVector != 'nonbinary':
 		raise Exception('CALF ERROR: Invalid targetVector argument.  Only "binary" or "nonbinary" is allowed.')
 	elif targetVector == 'binary' and optimize=='corr':
@@ -964,14 +1035,14 @@ def perm_target_cv(data, targetVector, limit, times, proportion = .8, optimize =
 
 
 
-
-#'@title write_calf
-#'@description Writes data returned from a call to calf()
-#'@param x A CALF randomize object returned from a calf() call.
-#'@param filename The output filename
-#'@export
 def write_calf(x, filename):
+	'''Writes the results from a call to calf() to a file
 
+	:param x: The dictionary object returned from calling calf().
+	:type x: dict
+	:param filename: The name of the file in which to write the results from calf()
+	:type filename: string
+	'''
 	x['selection'].to_csv(filename, index = False, mode='w')
 
 	file = open(filename,'a')
@@ -988,13 +1059,14 @@ def write_calf(x, filename):
 
 
 
-#'@title write_calf_randomize
-#'@description Writes data returned from a call to calf_randomize()
-#'@param x A CALF randomize object returned from a calf_randomize() call.
-#'@param filename The output filename
-#'@export
 def write_calf_randomize(x, filename):
+	'''Writes the results from a call to calf_randomize() to a file
 
+	:param x: The dictionary object returned from calling calf_randomize().
+	:type x: dict
+	:param filename: The name of the file in which to write the results from calf_randomize()
+	:type filename: string
+	'''
 	x['multiple'].to_csv(filename, index = False, mode='w')
 
 	if x['times'] == 1:
@@ -1032,13 +1104,14 @@ def write_calf_randomize(x, filename):
 
 
 
-
-#'@title write_calf_subset
-#'@description Writes output of the CALF subset dataframe
-#'@param x A CALF subset object returned from a calf_subset() call.
-#'@param filename The output filename
-#'@export
 def write_calf_subset(x, filename):
+	'''Writes the results from a call to calf_subset() to a file
+
+	:param x: The dictionary object returned from calling calf_subset().
+	:type x: dict
+	:param filename: The name of the file in which to write the results from calf_subset()
+	:type filename: string
+	'''
 	x['multiple'].to_csv(path_or_buf = filename,
 		index = False,
 		mode='w')
@@ -1081,7 +1154,35 @@ def calf_internal(
 	targetVector = 'binary',
 	optimize = 'pval',
 	verbose = False):
+	'''The basic CALF algorithm
 
+	:param data: Data frame where first column contains case/control coded variable (0/1) if targetVector is binary or real values if targetVector is nonbinary
+	:type data: pandas DataFrame
+	:param nMarkers: Maximum number of markers to include in creation of sum.
+	:type nMarkers: int
+	:param randomize: Set to True to randomize the data for each CALF run.
+	:type randomize: bool
+	:param proportion: A value between 0 and 1, the percentage of data, randomly chosen, to use in the calculation.
+	:type proportion: float
+	:param times: The number of times to run CALF on data.
+	"type times: int
+	:param targetVector: Set to "binary" to indicate data with a target vector (first column) having case/control characteristic.  Set to "nonbinary" for target vector (first column) with real numbers.
+	:type targetVector: string
+	:param optimize: Criteria to optimize.  Allowed values are "pval", "auc", for a binary target vector, or "corr" for a nonbinary target vector.
+	:type optimize: string
+	:param verbose: True to print activity at each iteration to console. Defaults to False.
+	:type verbose: bool
+	:return: A dictionary composed of the following results from CALF:
+			'selection': The markers selected each with their assigned weight (-1 or 1),
+			'auc': The AUC determined during running CALF.  AUC can be provided for given markers AUC represented for selected markers will only be optimal if set to optimzie for AUC,
+			'randomize': False,
+			'proportion': Undefined,
+			'targetVec': Target vector argument given in the function call,
+			'rocPlot': Receiver operating curve plot, if applicable for dataset type and optimizer supplied, 
+			'finalBest': The optimal value for the provided optimization type, e.g. if optimize='pval" this will have the calculated p-value for the run,
+			'optimize': The optimizer argument given in the function call,
+	:rtype: dict
+	'''
 	x = None
 	y = None
 	refx = None
