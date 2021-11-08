@@ -1298,21 +1298,41 @@ def calf_internal(
 		casePrev = case.iloc[:,keepIndex]
 		ctrlPrev = ctrl.iloc[:,keepIndex]
 		for i in range(0, nVars*2):
-			if i != keepIndex:
-				caseVar = casePrev + case.iloc[:,i]
-				ctrlVar = ctrlPrev + ctrl.iloc[:,i]
-				realVar = realPrev + realMarkers.iloc[:,i]
-				if targetVector == "binary":
-					if optimize == "pval":
-						crit = ttest_ind(caseVar, ctrlVar, equal_var=False).pvalue
-					elif optimize == "auc":
-						crit = computeAuc(caseVar, ctrlVar)
+			if i >= 1 and i <= nVars:
+				if i != keepIndex and (nVars+i) != keepIndex:
+					caseVar = casePrev + case.iloc[:,i]
+					ctrlVar = ctrlPrev + ctrl.iloc[:,i]
+					realVar = realPrev + realMarkers.iloc[:,i]
+					if targetVector == "binary":
+						if optimize == "pval":
+							crit = ttest_ind(caseVar, ctrlVar, equal_var=False).pvalue
+						elif optimize == "auc":
+							crit = computeAuc(caseVar, ctrlVar)
+							crit = 1/crit
+					else:
+						crit = pandas.Series(real).corr(pandas.Series(realVar))
 						crit = 1/crit
 				else:
-					crit = pandas.Series(real).corr(pandas.Series(realVar))
-					crit = 1/crit
+					crit = float("NaN")
+			elif i >= (nVars+1) and i <= 2*nVars:
+				if i != keepIndex and (i-nVars) != keepIndex:
+					caseVar = casePrev + case.iloc[:,i]
+					ctrlVar = ctrlPrev + ctrl.iloc[:,i]
+					realVar = realPrev + realMarkers.iloc[:,i]
+					if targetVector == "binary":
+						if optimize == "pval":
+							crit = ttest_ind(caseVar, ctrlVar, equal_var=False).pvalue
+						elif optimize == "auc":
+							crit = computeAuc(caseVar, ctrlVar)
+							crit = 1/crit
+					else:
+						crit = pandas.Series(real).corr(pandas.Series(realVar))
+						crit = 1/crit
+				else:
+					crit = float("NaN")
 			else:
 				crit = float("NaN")
+
 			allCrit.append(crit)
 		# end of second loop ----------------------------------------------#
 
@@ -1347,19 +1367,38 @@ def calf_internal(
 			realPrev = realMarkers.iloc[:,keepIndices].sum(axis=1)
 
 			for i in range(0, nVars*2):
-				if i not in keepIndices:
-					caseVar = casePrev + case.iloc[:,i]
-					ctrlVar = ctrlPrev + ctrl.iloc[:,i]
-					realVar = realPrev + realMarkers.iloc[:,i]
-					if targetVector == "binary":
-						if optimize == "pval":
-							crit = ttest_ind(caseVar, ctrlVar, equal_var=False).pvalue
-						elif optimize == "auc":
-							crit = computeAuc(caseVar, ctrlVar)
+				if i >= 1 and i <= nVars:
+					if i not in keepIndices and (nVars+i) not in keepIndices:
+						caseVar = casePrev + case.iloc[:,i]
+						ctrlVar = ctrlPrev + ctrl.iloc[:,i]
+						realVar = realPrev + realMarkers.iloc[:,i]
+						if targetVector == "binary":
+							if optimize == "pval":
+								crit = ttest_ind(caseVar, ctrlVar, equal_var=False).pvalue
+							elif optimize == "auc":
+								crit = computeAuc(caseVar, ctrlVar)
+								crit = 1/crit
+						else:
+							crit = pandas.Series(real).corr(pandas.Series(realVar))
 							crit = 1/crit
 					else:
-						crit = pandas.Series(real).corr(pandas.Series(realVar))
-						crit = 1/crit
+						crit = float("NaN")
+				elif  i >= (nVars+1) and i <= 2*nVars:
+					if i not in keepIndices and (i-nVars) not in  keepIndices:
+						caseVar = casePrev + case.iloc[:,i]
+						ctrlVar = ctrlPrev + ctrl.iloc[:,i]
+						realVar = realPrev + realMarkers.iloc[:,i]
+						if targetVector == "binary":
+							if optimize == "pval":
+								crit = ttest_ind(caseVar, ctrlVar, equal_var=False).pvalue
+							elif optimize == "auc":
+								crit = computeAuc(caseVar, ctrlVar)
+								crit = 1/crit
+						else:
+							crit = pandas.Series(real).corr(pandas.Series(realVar))
+							crit = 1/crit
+					else:
+						crit = float("NaN")
 				else:
 					crit = float("NaN")
 				allCrit.append(crit)
