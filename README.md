@@ -1,4 +1,4 @@
-# CALF v1.17.0 README
+# CALF v1.18.0 README
 
 
 # Setup and Usage
@@ -37,7 +37,7 @@ proportion | Undefined
 targetVec | Target vector argument given in the function call, 'rocPlot': Receiver operating curve plot, if applicable for dataset type and optimizer supplied. 
 finalBest | The optimal value for the provided optimization type, e.g. if optimize='pval" this will have the calculated p-value for the run.
 optimize | The optimizer argument given in the function call.  
-  
+
 
 
 ## *calf_fractional(data, nMarkers, controlProportion = .8, caseProportion = .8, optimize = "pval", verbose = False)* 
@@ -55,16 +55,17 @@ verbose | True to print activity at each iteration to console. Defaults to False
 #### **returns**
 
 A dictionary composed of the following results from CALF:
+
 key | description/value
 --- | -----------
-selection |  The markers selected each with their assigned weight (-1 or 1).
+selection | The markers selected each with their assigned weight (-1 or 1).
 auc |  The AUC determined during running CALF.  AUC can be provided for given markers AUC represented for selected markers will only be optimal if set to optimzie for AUC.
-randomize |  False
-proportion |  The proportions of case an control applied druing the function run.
-targetVec |  "binary"
-rocPlot |  Receiver operating curve plot, if applicable for dataset type and optimizer supplied.
-finalBest |  The optimal value for the provided optimization type, e.g. if optimize='pval" this will have the calculated p-value for the run.
-optimize |  The optimizer argument given in the function call.
+randomize | False
+proportion | The proportions of case an control applied druing the function run.
+targetVec | "binary"
+rocPlot | Receiver operating curve plot, if applicable for dataset type and optimizer supplied.
+finalBest | The optimal value for the provided optimization type, e.g. if optimize='pval" this will have the calculated p-value for the run.
+optimize | The optimizer argument given in the function call.
 
 
 
@@ -82,6 +83,7 @@ verbose | True to print activity at each iteration to console. Defaults to False
 #### **returns**
 
 A dictionary composed of the following results from CALF:
+
 key | description/value
 --- | -----------
 multiple | The markers chosen and the number of times they were selected per iteration,
@@ -95,7 +97,6 @@ finalBest | The optimal value for the provided optimization type, e.g. if optimi
 optimize | The optimizer argument given in the function call,
 verbose | The value supplied to the verbose parameter when the function was called
 
-	
 
 
 ## *calf_subset (data, nMarkers, targetVector, proportion = .8, times = 1, optimize = "pval", verbose = False)*
@@ -113,6 +114,7 @@ param verbose | True to print activity at each iteration to console. Defaults to
 #### **returns**
 
 A dictionary composed of the following results from CALF:
+
 key | description/value
 --- | -----------
 multiple | The markers chosen and the number of times they were selected per iteration.
@@ -124,8 +126,6 @@ times | The value provided to the times parameter when the function was called.
 rocPlot | Receiver operating curve plot, if applicable for dataset type and optimizer supplied.
 finalBest | The optimal value for the provided optimization type, e.g. if optimize=pval" this will have the calculated p-value for the run.
 optimize | The optimizer argument given in the function call.
-
-
 
 
 
@@ -143,7 +143,8 @@ optimize | Criteria to optimize.  Allowed values are "pval" or "auc" | *string*
 verbose | True to print activity at each iteration to console. Defaults to False. | *bool*
 #### **returns**
 
-A dictionary composed of the following results from CALF :
+A dictionary composed of the following results from CALF:
+
 key | description/value
 --- | -----------
 multiple | The markers chosen and the number of times they were selected per iteration.
@@ -156,7 +157,7 @@ rocPlot | Receiver operating curve plot, if applicable for dataset type and opti
 finalBest | The optimal value for the provided optimization type, e.g. if optimize='pval" this will have the calculated p-value for the run.
 optimize | The optimizer argument given in the function call.
 
-	
+
 
 ## *calf_cv(data = CaseControl, limit = 5, times = 100, targetVector = 'binary', optimize = 'pval')*
 Performs repeated random subsampling cross validation on data for Coarse Approximation Linear Function  
@@ -188,7 +189,7 @@ outputPath | The path where files are to be written as output, default is None m
 #### **returns**
 
 A data frame of the results from the cross validation.  Columns of all markers from data and rows representing each iteration of a CALF run.  Cells will contain the result from CALF for a given CALF run and the markers that were chose for that run.
-	
+
 
 ## *write_calf(x, filename)*
 Writes the results from a call to calf() to a file  
@@ -197,7 +198,7 @@ parameter | description | type
 --------- | ------------| --------
 x | The dictionary object returned from calling calf(). | *dict*
 filename | The name of the file in which to write the results from calf(). | *string*
-	
+
 
 ## *write_calf_randomize(x, filename)*
 Writes the results from a call to calf_randomize() to a file  
@@ -236,7 +237,8 @@ optimize | Criteria to optimize.  Allowed values are "pval", "auc", for a binary
 verbose | True to print activity at each iteration to console. Defaults to False. | * bool*
 #### **returns**
 
-A dictionary composed of the following results from CALF :
+A dictionary composed of the following results from CALF:
+
 key | description/value
 --- | -----------
 selection | The markers selected each with their assigned weight (-1 or 1).

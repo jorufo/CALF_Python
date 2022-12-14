@@ -1089,17 +1089,20 @@ def write_calf_randomize(x, filename):
 		file.write('\n')
 		file.close()
 		if x['targetVec'] == 'binary' and x['optimize'] == 'auc':
-			auc = pandas.DataFrame(x['auc'])
-			auc.columns = ['AUC']
-			auc.to_csv(filename, index = False, mode='a')
+			if x['auc'] is not None:
+				auc = pandas.DataFrame(x['auc'])
+				auc.columns = ['AUC']
+				auc.to_csv(filename, index = False, mode='a')
 		elif x['targetVec'] == 'binary' and x['optimize'] == 'pval':
-			finalBest = pandas.DataFrame(x['finalBest'])
-			finalBest.columns = ['pval']
-			finalBest.to_csv(filename, index = False, mode='a')
+			if x['finalBest'] is not None:
+				finalBest = pandas.DataFrame(x['finalBest'])
+				finalBest.columns = ['pval']
+				finalBest.to_csv(filename, index = False, mode='a')
 		elif x['targetVec'] == 'nonbinary':
-			finalBest = pandas.DataFrame(x['finalBest'])
-			finalBest.columns = ['corr']
-			finalBest.to_csv(filename, index = False, mode='a')
+			if x['finalBest'] is not None:
+				finalBest = pandas.DataFrame(x['finalBest'])
+				finalBest.columns = ['corr']
+				finalBest.to_csv(filename, index = False, mode='a')
 
 
 
@@ -1121,8 +1124,9 @@ def write_calf_subset(x, filename):
 	file.close()
 	
  
-	finalBest = pandas.DataFrame(x['finalBest'])
-	if finalBest is not None:
+	
+	if x['finalBest'] is not None:
+		finalBest = pandas.DataFrame(x['finalBest'])
 		if x['targetVec'] == 'binary' and x['optimize'] == 'auc':
 			finalBest.columns = ['AUC']
 		elif x['targetVec'] == 'binary' and x['optimize'] == 'pval':
@@ -1460,12 +1464,10 @@ def calf_internal(
 		all_result.columns = ['funcValue', 'seqCaseCtrl', 'ranks']
 		all_result = all_result.sort_values(by='ranks')
 
-		x_list = numpy.arange(0,1,1/(len(all_result)-1))
-		x_list = numpy.append(x_list, 1)
+		x_list = numpy.arange(0,1,1/(len(all_result)))
 		refx = pandas.DataFrame(x_list).set_index(all_result.index)
 
-		y_list = numpy.arange(0,1,1/(len(all_result)-1))
-		y_list = numpy.append(y_list, 1)
+		y_list = numpy.arange(0,1,1/(len(all_result)))
 		refy = pandas.DataFrame(y_list).set_index(all_result.index)
 
 		all_result = pandas.concat([all_result, refx, refy], axis = 1)
