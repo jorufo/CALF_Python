@@ -5,7 +5,7 @@
 You can install CALF by running `pip install calfpy`
 
 You can import all CALF functions by using the folliwng import statement  
-`import caflpy.methods`
+`import calfpy.methods`
 
 Calling a function (example)
 `calfpy.methods.calf(data, 3, "binary", optimize = 'pval', verbose = False)`  
