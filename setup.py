@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="calfpy",
-    version="1.20.0",
+    version="1.20.1",
     author="John Ford, Clark Jeffries, Diana Perkins",
     author_email="JoRuFo@gmail.com",
     description="Contains greedy algorithms for coarse approximation linear functions.",

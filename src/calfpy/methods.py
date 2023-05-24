@@ -1466,10 +1466,6 @@ def calf_internal(
 		print(len(all_result))
 
 		x_list = numpy.arange(0,1,1/(len(all_result)))
-		print("**************************Watch***********************************")
-		print(len(x_list))
-		print(all_result.index)
-		print("**************************Watch***********************************")
 		refx = pandas.DataFrame(x_list).set_index(all_result.index)
 
 		y_list = numpy.arange(0,1,1/(len(all_result)))
