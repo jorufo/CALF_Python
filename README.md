@@ -1,14 +1,14 @@
-# CALF v1.18.3 README
+# CALF v1.2 README
 
 
 # Setup and Usage
 You can install CALF by running `pip install calfpy`
 
-You can import all CALF functions by using the folliwng import statement  
-`import calfpy.methods`
+You can import all CALF methods by using the folliwng import statement  
+`from calfpy.methods import *`
 
 Calling a function (example)
-`calfpy.methods.calf(data, 3, "binary", optimize = 'pval', verbose = False)`  
+`calf(data, 3, "binary", optimize = 'pval', verbose = False)`  
 
 # Library Documentation
 

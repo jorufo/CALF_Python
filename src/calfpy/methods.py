@@ -772,7 +772,7 @@ def calf_cv(data, targetVector, limit, times, proportion = .8, optimize = 'pval'
 					resultCtrlData = weightsTimesUnkept[unkeptCtrlRows.index]
 					resultCaseData = weightsTimesUnkept[unkeptCaseRows.index]
 					
-					optimizedUnkeptList.append(ttest_ind(resultCaseData, resultCtrlData, equal_var=False).pvalue)
+					optimizedUnkeptList.append(ttest_ind(resultCaseData.astype(float), resultCtrlData.astype(float), equal_var=False).pvalue)
 
 				elif optimize == 'auc':
 					unkeptDropped = unkeptData.drop(unkeptData.columns[0], axis=1)
@@ -979,7 +979,7 @@ def perm_target_cv(data, targetVector, limit, times, proportion = .8, optimize =
 					resultCtrlData = weightsTimesUnkept[unkeptCtrlRows.index]
 					resultCaseData = weightsTimesUnkept[unkeptCaseRows.index]
 					
-					optimizedUnkeptList.append(ttest_ind(resultCaseData, resultCtrlData, equal_var=False).pvalue)
+					optimizedUnkeptList.append(ttest_ind(resultCaseData.astype(float), resultCtrlData.astype(float), equal_var=False).pvalue)
 
 				elif optimize == 'auc':
 					unkeptDropped = unkeptData.drop(unkeptData.columns[0], axis=1)
@@ -1197,7 +1197,7 @@ def calf_internal(
 
 	nVars = data.shape[1] - 1
 	dNeg  = -data.iloc[:,1:data.shape[1]]
-	dNeg.columns = list(map(lambda i: i+'.1',dNeg.columns))
+	dNeg.columns = list(map(lambda i: str(i)+'.1',dNeg.columns))
 	data = pandas.concat([data,dNeg], axis=1)
 
 	if nMarkers > nVars:
@@ -1439,7 +1439,7 @@ def calf_internal(
 	indexNegPos[[i for i in keepIndices if i <= nVars]] = 1
 
 	# Produce the table of results
-	output = pandas.DataFrame({'Marker': [i.replace('.1','') for i in keepMarkers], 'Weight': indexNegPos[keepIndices]})
+	output = pandas.DataFrame({'Marker': [str(i).replace('.1','') for i in keepMarkers], 'Weight': indexNegPos[keepIndices]})
 
 	if targetVector == "nonbinary" or optimize == "auc":
 		finalBestCrit = 1 / bestCrits[-1]
@@ -1463,8 +1463,13 @@ def calf_internal(
 		all_result = pandas.concat([funcValue, pandas.DataFrame(seqCaseCtrl).set_index(funcValue.index), ranks], axis= 1)
 		all_result.columns = ['funcValue', 'seqCaseCtrl', 'ranks']
 		all_result = all_result.sort_values(by='ranks')
+		print(len(all_result))
 
 		x_list = numpy.arange(0,1,1/(len(all_result)))
+		print("**************************Watch***********************************")
+		print(len(x_list))
+		print(all_result.index)
+		print("**************************Watch***********************************")
 		refx = pandas.DataFrame(x_list).set_index(all_result.index)
 
 		y_list = numpy.arange(0,1,1/(len(all_result)))
